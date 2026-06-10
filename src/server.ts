@@ -3,6 +3,7 @@ dotenv.config();
 import app from './app';
 import connectDB from './config/database';
 import { createInitialAdmin } from './controllers/authController';
+import { Request, Response } from 'express';
 
 // Initialize once
 let initialized = false;
@@ -14,13 +15,13 @@ async function initialize() {
 }
 
 // Vercel handler
-export default async function handler(req, res) {
+export default async function handler(req: Request, res: Response) {
   try {
     await initialize();
     app(req, res);
   } catch (error) {
     console.error('Serverless function error:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
   }
 }
 
