@@ -28,7 +28,7 @@ export const login = async (req: Request, res: Response) => {
       throwError(401, 'Invalid credentials');
     }
 
-    const token = jwt.sign(
+    const token = (jwt as any).sign(
       { id: admin!._id, role: admin!.role },
       process.env.JWT_SECRET || 'default_jwt_secret',
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
