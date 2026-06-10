@@ -17,23 +17,47 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      'https://udyog-bharari-2026.vercel.app'
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        process.env.FRONTEND_URL || 'http://localhost:3000',
+        'https://udyog-bharari-2026.vercel.app'
+      ];
+      
+      const isAllowed = allowedOrigins.includes(origin) || 
+                        origin.endsWith('.vercel.app') || 
+                        origin.includes('localhost');
+                        
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 app.use(express.json());
 
-// Handle both /api and non /api prefixes
-app.use(['/api/registrations', '/registrations'], registrationsRoutes);
-app.use(['/api/payments', '/payments'], paymentsRoutes);
-app.use(['/api/auth', '/auth'], authRoutes);
-app.use(['/api/webhooks', '/webhooks'], webhooksRoutes);
+// Middleware to handle API prefixing
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api')) {
+    req.url = req.url.replace('/api', '');
+  }
+  next();
+});
 
-app.get(['/api/health', '/health'], (req, res) => {
-  res.json({ message: 'Server is running' });
+app.use('/registrations', registrationsRoutes);
+app.use('/payments', paymentsRoutes);
+app.use('/auth', authRoutes);
+app.use('/webhooks', webhooksRoutes);
+
+app.get('/health', (req, res) => {
+  res.json({ message: 'Server is running', url: req.url });
 });
 
 app.use(errorHandler);
