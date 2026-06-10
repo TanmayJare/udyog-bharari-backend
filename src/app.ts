@@ -17,17 +17,22 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+      'https://udyog-bharari-2026.vercel.app'
+    ],
+    credentials: true,
   })
 );
 app.use(express.json());
 
-app.use('/api/registrations', registrationsRoutes);
-app.use('/api/payments', paymentsRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/webhooks', webhooksRoutes);
+// Handle both /api and non /api prefixes
+app.use(['/api/registrations', '/registrations'], registrationsRoutes);
+app.use(['/api/payments', '/payments'], paymentsRoutes);
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/webhooks', '/webhooks'], webhooksRoutes);
 
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
