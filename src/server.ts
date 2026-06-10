@@ -6,18 +6,26 @@ import { createInitialAdmin } from './controllers/authController';
 
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
+// Initialize once
+let initialized = false;
+async function initialize() {
+  if (initialized) return;
   await connectDB();
   await createInitialAdmin();
-  
-  // Only listen if we're not on Vercel
-  if (process.env.VERCEL !== '1') {
+  initialized = true;
+}
+
+// For Vercel
+export default async (req, res) => {
+  await initialize();
+  return app(req, res);
+};
+
+// For local development
+if (process.env.NODE_ENV !== 'production' && require.main === module) {
+  initialize().then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
-  }
-};
-
-startServer();
-
-export default app;
+  });
+}
