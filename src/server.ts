@@ -4,8 +4,6 @@ import app from './app';
 import connectDB from './config/database';
 import { createInitialAdmin } from './controllers/authController';
 
-const PORT = process.env.PORT || 5000;
-
 // Initialize once
 let initialized = false;
 async function initialize() {
@@ -15,13 +13,19 @@ async function initialize() {
   initialized = true;
 }
 
-// For Vercel
-export default async (req, res) => {
-  await initialize();
-  return app(req, res);
-};
+// Vercel handler
+export default async function handler(req, res) {
+  try {
+    await initialize();
+    app(req, res);
+  } catch (error) {
+    console.error('Serverless function error:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+}
 
-// For local development
+// Local dev
+const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production' && require.main === module) {
   initialize().then(() => {
     app.listen(PORT, () => {
