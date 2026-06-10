@@ -29,20 +29,20 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: admin._id, role: admin.role },
+      { id: admin!._id, role: admin!.role },
       process.env.JWT_SECRET || 'default_jwt_secret',
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
-    admin.lastLogin = new Date();
-    await admin.save();
+    admin!.lastLogin = new Date();
+    await admin!.save();
 
     sendResponse(res, 200, {
       token,
       admin: {
-        id: admin._id,
-        name: admin.name,
-        role: admin.role,
+        id: admin!._id,
+        name: admin!.name,
+        role: admin!.role,
       },
     });
   } catch (err) {
